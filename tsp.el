@@ -57,6 +57,8 @@
 (tsp:search "20181229-000000")
 
 (defun my/parse-org-title (file)
+  "Expect FILE to be an org file with a title. Return the title
+as a string."
   (let* ((data (with-temp-buffer
                  (goto-char (point-max))
                  (insert (f-read file))
@@ -64,6 +66,3 @@
                  (org-element-parse-buffer)))
          (keyword (org-element-map data 'keyword 'identity nil t)))
     (and keyword (org-element-property :value keyword))))
-
-(loop for file in (f-files "~/data/storage/+org/wiki")
-      collect (my/parse-org-title file))
