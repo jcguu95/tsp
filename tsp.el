@@ -161,3 +161,21 @@ Next, break them into tokens, and check if they are as expected."
 [[file:../research-project--macdonald-polynomial.org][research project: macdonald polynomial]]
 "
    :ts ("20190226-000000"))))
+
+(defun my/export-ts-property (ts)
+  (let* ((data (tsp:search ts))
+         (files (plist-get data :files))
+         (org-files (plist-get data :org-files)))
+    (apply #'concat
+           (concatenate 'list
+                        (list (format "* %s\n" ts))
+                        (loop for f in files
+                              collect (format "[[file:%s]]\n" f))
+                        (loop for o in org-files
+                              collect (format "** %s\n\n%s\n\n%s\n\n"
+                                              (plist-get o :title)
+                                              (plist-get o :ts)
+                                              (plist-get o :header)))))
+    ))
+
+(my/export-ts-property "20190226-000000")
