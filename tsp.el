@@ -36,19 +36,25 @@
     (error "TS is not in the expected format."))
 
   ;; return files
-  (let ((files (-flatten
+  (let* ((files (-flatten
                 (loop for dir in tsp:lib
                       collect (loop for file in (-flatten (f-files dir))
                                     if (string-match ts (f-base file))
                                     collect file))))
-        (main-note (let ((target (f-join tsp:main-note-dir
-                                         (concat ts ".org"))))
-                     (when (f-exists-p target)
-                       target))))
+         (org-files (loop for file in files
+                          if (equal (f-ext file) "org")
+                          collect file)))
     (list :files files
-          :main-note main-note
-          :title (my/parse-org-title main-note)
-          :header (my/get-org-header main-note)))
+          :org-files org-files
+          :title (loop for o in org-files
+                       collect (my/parse-org-title o))
+          :header (loop for o in org-files
+                       collect (my/get-org-header o))
+          :ts (loop for o in org-files
+                       collect (my/extract-ts-from-string (f-read o)))
+          ;; :header (my/get-org-header main-note)
+          ;; :timestrings (my/extract-ts-from-string (f-read main-note))
+          ))
 
   ;; return timestamp it points to
   ;; TODO Again it boils down to org parsing..
@@ -56,6 +62,8 @@
 
 ;; testing
 (tsp:search "20181229-000000")
+(tsp:search "20190226-000000")
+(tsp:search "20210325-093001")
 
 (defun my/read-org-file (file)
   "Expect FILE to be an org file. Return its org data."
@@ -129,15 +137,16 @@ Next, break them into tokens, and check if they are as expected."
 
 ;; A quick narrow-down timestamp search utility:
 (defun my/extract-ts-from-string (str)
-  (-filter (lambda (x) (my/ts-check x))
-           (-flatten
-            (s-match-strings-all
+  (-uniq
+   (-filter (lambda (x) (my/ts-check x))
+            (-flatten
+             (s-match-strings-all
 
-             (rx word-start
-                 (** 4 15 (any digit "-"))
-                 word-end)
+              (rx word-start
+                  (** 4 15 (any digit "-"))
+                  word-end)
 
-             str))))
+              str)))))
 
 ;; test cases
 (mapcar #'my/extract-ts-from-string
@@ -147,10 +156,3 @@ Next, break them into tokens, and check if they are as expected."
          "This is a long--message- asd -s--20210131-085932--sd ok"
          "This is a long--message- asd -s--20210170--sd ok"
          "This is a long--message- asd -s--202101--sd ok"))
-
-(loop for file in (f-files "~/test")
-      collect (my/extract-ts-from-string (f-read file)))
-
-(-uniq (-flatten
-        (loop for file in (f-files "~/data/storage/+org/wiki/fleeting")
-              collect (my/extract-ts-from-string (f-read file)))))
