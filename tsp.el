@@ -77,3 +77,55 @@ as a string."
 string, up to the first headline."
   (let ((str (f-read file)))
     (subseq str 0 (string-match "\n\\*" str))))
+
+;; working
+
+;; A quick narrow-down timestamp search utility:
+(-flatten
+ (s-match-strings-all
+
+  (rx word-start
+      (** 4 15 (any digit "-"))
+      word-end)
+
+  "embedded-in-a-mess-20201017-123124--Hi"))
+
+;; Now write my function to pin down the details
+;;
+;; if length 4, can be any number
+;; if length 6, the last two should be 01~12
+;; if length 8, after translating to a date, should be a legit date
+;; if length 11, first 8 should give a legit date, 9th should be a -, 10+11 should be between 00~23
+;; if length 13, ..etc + the last two should be 00~59
+;; if length 15, ..etc + the last two should be 00~59
+
+(defun my/ts-check (str)
+  (let ((len (length str)))
+    (when
+        (cl-case len
+          (4 (setf str (concat str "0101-000000")))
+          (6 (setf str (concat str "01-000000")))
+          (8 (setf str (concat str "-000000")))
+          (11 (setf str (concat str "0000")))
+          (13 (setf str (concat str "00")))
+          (15 str))
+      (let ((year (substring str 0 4))
+            (month (substring str 4 6))
+            (day (substring str 6 8))
+            (dash (substring str 8 9))
+            (hour (substring str 9 11))
+            (minute (substring str 11 13))
+            (sec (substring str 13 15)))
+        (ignore-errors
+          (and (read)
+               (legit-dash dash)
+               (legit-time time)))))))
+
+(my/ts-check "2020")
+
+(ignore-errors
+  (and
+   (> (read "2020") 3)
+   (> "a" "b")))
+(integerp 30)
+(type-of (read "-"))
