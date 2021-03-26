@@ -78,17 +78,6 @@ string, up to the first headline."
   (let ((str (f-read file)))
     (subseq str 0 (string-match "\n\\*" str))))
 
-;; working
-
-;; A quick narrow-down timestamp search utility:
-(-flatten
- (s-match-strings-all
-
-  (rx word-start
-      (** 4 15 (any digit "-"))
-      word-end)
-
-  "embedded-in-a-mess-20201017-123124--Hi"))
 
 ;; Now write my function to pin down the details
 ;;
@@ -100,8 +89,16 @@ string, up to the first headline."
 ;; if length 15, ..etc + the last two should be 00~59
 
 (defun my/ts-check (str)
+  "Check if the input string is an expected time string.
+
+Mechanism: first check if it's of length 4, 6, 8, 11, 13, or 15.
+If not, return nil. If yes, complete the string canonically so
+that it's of length 15.
+
+Next, break them into tokens, and check if they are as expected."
   (let ((len (length str)))
     (when
+        ;; First sanity check.
         (cl-case len
           (4 (setf str (concat str "0101-000000")))
           (6 (setf str (concat str "01-000000")))
@@ -109,23 +106,51 @@ string, up to the first headline."
           (11 (setf str (concat str "0000")))
           (13 (setf str (concat str "00")))
           (15 str))
-      (let ((year (substring str 0 4))
-            (month (substring str 4 6))
-            (day (substring str 6 8))
-            (dash (substring str 8 9))
-            (hour (substring str 9 11))
-            (minute (substring str 11 13))
-            (sec (substring str 13 15)))
-        (ignore-errors
-          (and (read)
-               (legit-dash dash)
-               (legit-time time)))))))
+      ;; Break them into tokens, and check if as expected.
+      (ignore-errors
+        (let ((year (read (substring str 0 4)))
+              (month (read (substring str 4 6)))
+              (day (read (substring str 6 8)))
+              (dash (read (substring str 8 9)))
+              (hour (read (substring str 9 11)))
+              (minute (read (substring str 11 13)))
+              (sec (read (substring str 13 15))))
+          (and (and (integerp year) (> year 0))
+               (and (integerp month) (<= 1 month 12))
+               (and (integerp day) (<= 1 day 31))
+               (eq '- dash)
+               (and (integerp hour) (<= 0 hour 23))
+               (and (integerp minute) (<= 0 minute 59))
+               (and (integerp sec) (<= 0 sec 59))))))))
 
-(my/ts-check "2020")
+;; test
+(mapcar #'my/ts-check '("2020" "20210731-150156")) ;; all t
+(mapcar #'my/ts-check '("20200731-" "20210731-150161")) ;; all nil
 
-(ignore-errors
-  (and
-   (> (read "2020") 3)
-   (> "a" "b")))
-(integerp 30)
-(type-of (read "-"))
+;; A quick narrow-down timestamp search utility:
+(defun my/extract-ts-from-string (str)
+  (-filter (lambda (x) (my/ts-check x))
+           (-flatten
+            (s-match-strings-all
+
+             (rx word-start
+                 (** 4 15 (any digit "-"))
+                 word-end)
+
+             str))))
+
+;; test cases
+(mapcar #'my/extract-ts-from-string
+        (list
+         "This is a long--message- asd -s--20210107 -12--sd ok"
+         "This is a long--message- asd -s--20210107-12--sd ok"
+         "This is a long--message- asd -s--20210131-085932--sd ok"
+         "This is a long--message- asd -s--20210170--sd ok"
+         "This is a long--message- asd -s--202101--sd ok"))
+
+(loop for file in (f-files "~/test")
+      collect (my/extract-ts-from-string (f-read file)))
+
+(-uniq (-flatten
+        (loop for file in (f-files "~/data/storage/+org/wiki/fleeting")
+              collect (my/extract-ts-from-string (f-read file)))))
