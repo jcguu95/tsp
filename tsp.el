@@ -51,14 +51,7 @@
           :header (loop for o in org-files
                        collect (my/get-org-header o))
           :ts (loop for o in org-files
-                       collect (my/extract-ts-from-string (f-read o)))
-          ;; :header (my/get-org-header main-note)
-          ;; :timestrings (my/extract-ts-from-string (f-read main-note))
-          ))
-
-  ;; return timestamp it points to
-  ;; TODO Again it boils down to org parsing..
-  )
+                       collect (my/extract-ts-from-string (f-read o))))))
 
 ;; testing
 (tsp:search "20181229-000000")
@@ -86,16 +79,6 @@ string, up to the first headline."
   (let ((str (f-read file)))
     (subseq str 0 (string-match "\n\\*" str))))
 
-
-;; Now write my function to pin down the details
-;;
-;; if length 4, can be any number
-;; if length 6, the last two should be 01~12
-;; if length 8, after translating to a date, should be a legit date
-;; if length 11, first 8 should give a legit date, 9th should be a -, 10+11 should be between 00~23
-;; if length 13, ..etc + the last two should be 00~59
-;; if length 15, ..etc + the last two should be 00~59
-
 (defun my/ts-check (str)
   "Check if the input string is an expected time string.
 
@@ -104,6 +87,16 @@ If not, return nil. If yes, complete the string canonically so
 that it's of length 15.
 
 Next, break them into tokens, and check if they are as expected."
+  ;; if length 4, can be any number
+  ;; if length 6, the last two should be 01~12
+  ;; if length 8, after translating to a date, should be a legit date
+  ;; if length 11, first 8 should give a legit date, 9th should be a -, 10+11 should be between 00~23
+  ;; if length 13, ..etc + the last two should be 00~59
+  ;; if length 15, ..etc + the last two should be 00~59
+  ;;
+  ;; ;; test cases
+  ;; (mapcar #'my/ts-check '("2020" "20210731-150156")) ;; all t
+  ;; (mapcar #'my/ts-check '("20200731-" "20210731-150161")) ;; all nil
   (let ((len (length str)))
     (when
         ;; First sanity check.
@@ -131,12 +124,16 @@ Next, break them into tokens, and check if they are as expected."
                (and (integerp minute) (<= 0 minute 59))
                (and (integerp sec) (<= 0 sec 59))))))))
 
-;; test
-(mapcar #'my/ts-check '("2020" "20210731-150156")) ;; all t
-(mapcar #'my/ts-check '("20200731-" "20210731-150161")) ;; all nil
-
 ;; A quick narrow-down timestamp search utility:
 (defun my/extract-ts-from-string (str)
+;; ;; test cases
+;; (mapcar #'my/extract-ts-from-string
+;;         (list
+;;          "This is a long--message- asd -s--20210107 -12--sd ok"
+;;          "This is a long--message- asd -s--20210107-12--sd ok"
+;;          "This is a long--message- asd -s--20210131-085932--sd ok"
+;;          "This is a long--message- asd -s--20210170--sd ok"
+;;          "This is a long--message- asd -s--202101--sd ok"))
   (-uniq
    (-filter (lambda (x) (my/ts-check x))
             (-flatten
@@ -148,11 +145,3 @@ Next, break them into tokens, and check if they are as expected."
 
               str)))))
 
-;; test cases
-(mapcar #'my/extract-ts-from-string
-        (list
-         "This is a long--message- asd -s--20210107 -12--sd ok"
-         "This is a long--message- asd -s--20210107-12--sd ok"
-         "This is a long--message- asd -s--20210131-085932--sd ok"
-         "This is a long--message- asd -s--20210170--sd ok"
-         "This is a long--message- asd -s--202101--sd ok"))
