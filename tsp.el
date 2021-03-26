@@ -47,7 +47,8 @@
                        target))))
     (list :files files
           :main-note main-note
-          :title (my/parse-org-title main-note)))
+          :title (my/parse-org-title main-note)
+          :header (my/get-org-header main-note)))
 
   ;; return timestamp it points to
   ;; TODO Again it boils down to org parsing..
@@ -56,13 +57,23 @@
 ;; testing
 (tsp:search "20181229-000000")
 
+(defun my/read-org-file (file)
+  "Expect FILE to be an org file. Return its org data."
+  (with-temp-buffer
+    (goto-char (point-max))
+    (insert (f-read file))
+    (goto-char (point-min))
+    (org-element-parse-buffer)))
+
 (defun my/parse-org-title (file)
   "Expect FILE to be an org file with a title. Return the title
 as a string."
-  (let* ((data (with-temp-buffer
-                 (goto-char (point-max))
-                 (insert (f-read file))
-                 (goto-char (point-min))
-                 (org-element-parse-buffer)))
+  (let* ((data (my/read-org-file file))
          (keyword (org-element-map data 'keyword 'identity nil t)))
     (and keyword (org-element-property :value keyword))))
+
+(defun my/get-org-header (file)
+  "Expect FILE to be an org file. Return its content, as a
+string, up to the first headline."
+  (let ((str (f-read file)))
+    (subseq str 0 (string-match "\n\\*" str))))
