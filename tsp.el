@@ -169,14 +169,16 @@ Next, break them into tokens, and check if they are as expected."
          (org-files (plist-get data :org-files)))
     (apply #'concat
            (concatenate 'list
-                        (list (format "* %s\n" ts))
+                        (list (format "* %s\n" ts)
+                              (format "+ files ::\n"))
                         (loop for f in files
-                              collect (format "[[file:%s]]\n" f))
+                              collect (format "\n[[file:%s]]\n\n" f))
                         (loop for o in org-files
-                              collect (format "** %s\n\n%s\n\n%s\n\n"
+                              collect (format "** %s\n\n*** timestamps\n%s\n\n*** header\n%s\n\n"
                                               (plist-get o :title)
                                               (plist-get o :ts)
                                               (plist-get o :header)))))
     ))
 
 (my/export-ts-property "20190226-000000")
+(my/export-ts-property "20210325-093001")
