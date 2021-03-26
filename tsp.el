@@ -149,20 +149,21 @@ Next, break them into tokens, and check if they are as expected."
 ;;;
 ;;; here is an example data
 
-(:files ("/home/jin/data/storage/+org/wiki/fleeting/20190226-000000.org")
- :org-files
- ((:path "/home/jin/data/storage/+org/wiki/fleeting/20190226-000000.org"
-   :title "20190226-000000"
-   :header "#+TITLE: 20190226-000000
+;; (:files ("/home/jin/data/storage/+org/wiki/fleeting/20190226-000000.org")
+;;  :org-files
+;;  ((:path "/home/jin/data/storage/+org/wiki/fleeting/20190226-000000.org"
+;;    :title "20190226-000000"
+;;    :header "#+TITLE: 20190226-000000
 
-#+ATTR_ORG: :width 500
-[[file:./img_store/20190226000000.jpg]]
-[[file:../../../wiki/research-project--macdonald-polynomial.org][research project: macdonald polynomial]]
-[[file:../research-project--macdonald-polynomial.org][research project: macdonald polynomial]]
-"
-   :ts ("20190226-000000"))))
+;; #+ATTR_ORG: :width 500
+;; [[file:./img_store/20190226000000.jpg]]
+;; [[file:../../../wiki/research-project--macdonald-polynomial.org][research project: macdonald polynomial]]
+;; [[file:../research-project--macdonald-polynomial.org][research project: macdonald polynomial]]
+;; "
+;;    :ts ("20190226-000000"))))
 
 (defun my/export-ts-property (ts)
+  "Return the properties of TS into an org string."
   (let* ((data (tsp:search ts))
          (files (plist-get data :files))
          (org-files (plist-get data :org-files)))
