@@ -53,7 +53,7 @@
           :ts (loop for o in org-files
                        collect (my/extract-ts-from-string (f-read o))))))
 
-;; testing
+;; testing -- main entry point
 (tsp:search "20181229-000000")
 (tsp:search "20190226-000000")
 (tsp:search "20210325-093001")
@@ -145,3 +145,18 @@ Next, break them into tokens, and check if they are as expected."
 
               str)))))
 
+
+;;; then lemme write an exporter
+;;;
+;;; here is an example data
+(:files ("/home/jin/data/storage/+org/wiki/fleeting/20190226-000000.org")
+ :org-files ("/home/jin/data/storage/+org/wiki/fleeting/20190226-000000.org")
+ :title ("20190226-000000")
+ :header ("#+TITLE: 20190226-000000
+
+#+ATTR_ORG: :width 500
+[[file:./img_store/20190226000000.jpg]]
+[[file:../../../wiki/research-project--macdonald-polynomial.org][research project: macdonald polynomial]]
+[[file:../research-project--macdonald-polynomial.org][research project: macdonald polynomial]]
+")
+ :ts (("20190226-000000")))
