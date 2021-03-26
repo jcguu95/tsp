@@ -45,13 +45,12 @@
                           if (equal (f-ext file) "org")
                           collect file)))
     (list :files files
-          :org-files org-files
-          :title (loop for o in org-files
-                       collect (my/parse-org-title o))
-          :header (loop for o in org-files
-                       collect (my/get-org-header o))
-          :ts (loop for o in org-files
-                       collect (my/extract-ts-from-string (f-read o))))))
+          :org-files (mapcar (lambda (o) (list
+                                          :path o
+                                          :title (my/parse-org-title o)
+                                          :header (my/get-org-header o)
+                                          :ts (my/extract-ts-from-string (f-read o))))
+                             org-files))))
 
 ;; testing -- main entry point
 (tsp:search "20181229-000000")
@@ -149,14 +148,16 @@ Next, break them into tokens, and check if they are as expected."
 ;;; then lemme write an exporter
 ;;;
 ;;; here is an example data
+
 (:files ("/home/jin/data/storage/+org/wiki/fleeting/20190226-000000.org")
- :org-files ("/home/jin/data/storage/+org/wiki/fleeting/20190226-000000.org")
- :title ("20190226-000000")
- :header ("#+TITLE: 20190226-000000
+ :org-files
+ ((:path "/home/jin/data/storage/+org/wiki/fleeting/20190226-000000.org"
+   :title "20190226-000000"
+   :header "#+TITLE: 20190226-000000
 
 #+ATTR_ORG: :width 500
 [[file:./img_store/20190226000000.jpg]]
 [[file:../../../wiki/research-project--macdonald-polynomial.org][research project: macdonald polynomial]]
 [[file:../research-project--macdonald-polynomial.org][research project: macdonald polynomial]]
-")
- :ts (("20190226-000000")))
+"
+   :ts ("20190226-000000"))))
