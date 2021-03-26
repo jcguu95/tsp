@@ -46,10 +46,8 @@
                      (when (f-exists-p target)
                        target))))
     (list :files files
-          :main-note main-note))
-
-  ;; return main note's title
-  ;; TODO It's so hard to get the title from the header!
+          :main-note main-note
+          :title (my/parse-org-title main-note)))
 
   ;; return timestamp it points to
   ;; TODO Again it boils down to org parsing..
@@ -57,3 +55,15 @@
 
 ;; testing
 (tsp:search "20181229-000000")
+
+(defun my/parse-org-title (file)
+  (let* ((data (with-temp-buffer
+                 (goto-char (point-max))
+                 (insert (f-read file))
+                 (goto-char (point-min))
+                 (org-element-parse-buffer)))
+         (keyword (org-element-map data 'keyword 'identity nil t)))
+    (and keyword (org-element-property :value keyword))))
+
+(loop for file in (f-files "~/data/storage/+org/wiki")
+      collect (my/parse-org-title file))
