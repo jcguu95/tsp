@@ -33,16 +33,16 @@ timestring."
 
 (defun tsp:file-prop (file)
   "Return the properties of the given FILE."
-  (let ((abs-path (file-truename file))
-        (extension (f-ext file))
-        (size (f-size file))
-        (last-update (format-time-string
-                      "%Y%m%d-%H%M%S"
-                      (nth 5 (file-attributes "~"))))
-        (timestamps (tsp:extract-ts-from-string abs-path))
-        org-title
-        org-header
-        org-links)
+  (let* ((abs-path (file-truename file))
+         (extension (f-ext file))
+         (size (f-size file))
+         (last-update (format-time-string
+                       "%Y%m%d-%H%M%S"
+                       (nth 5 (file-attributes "~"))))
+         (timestamps (tsp:extract-ts-from-string abs-path))
+         org-title
+         org-header
+         org-links)
 
     ;; If plain-text, add timestamps from the content of FILE.
     (when (member extension '("org" "md" "txt"))
@@ -52,7 +52,10 @@ timestring."
                          (tsp:extract-ts-from-string (f-read file)))))
 
     ;; If org, add timestamps from the org timestamps in FILE.
-    ;; TODO
+    (when (member extension '("org"))
+      (setf timestamps (concatenate 'list
+                                    timestamps
+                                    (tsp:get-ts-from-org file))))
 
     (list :abs-path abs-path
           :extension extension
