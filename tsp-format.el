@@ -1,5 +1,8 @@
 ;;; tsp-format.el -mode -*- coding: utf-8; lexical-binding: t; -*-
 
+(defvar tsp:ts-format
+  "%Y%m%d-%H%M%S")
+
 (defun tsp:check-ts-format (str)
   "Check if the input string is an expected time string.
 
