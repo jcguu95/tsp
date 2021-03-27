@@ -100,50 +100,8 @@ timestring."
 
               str)))))
 
-;;; then lemme write an exporter
-;;;
-;;; here is an example data
-
-;; (:files ("/home/jin/data/storage/+org/wiki/fleeting/20190226-000000.org")
-;;  :org-files
-;;  ((:path "/home/jin/data/storage/+org/wiki/fleeting/20190226-000000.org"
-;;    :title "20190226-000000"
-;;    :header "#+TITLE: 20190226-000000
-
-;; #+ATTR_ORG: :width 500
-;; [[file:./img_store/20190226000000.jpg]]
-;; [[file:../../../wiki/research-project--macdonald-polynomial.org][research project: macdonald polynomial]]
-;; [[file:../research-project--macdonald-polynomial.org][research project: macdonald polynomial]]
-;; "
-;;    :ts ("20190226-000000"))))
-
-(defun tsp:export-ts-property (ts)
-  "Return the properties of TS into an org string."
-  (let* ((data (tsp:search ts))
-         (files (plist-get data :files))
-         (org-files (plist-get data :org-files)))
-    (apply #'concat
-           (concatenate 'list
-                        (list (format "* %s\n" ts)
-                              (format "+ files ::\n"))
-                        (loop for f in files
-                              collect (format "\n[[file:%s]]\n\n" f))
-                        (loop for o in org-files
-                              collect (format "** %s\n\n*** timestamps\n%s\n\n*** header\n%s\n\n"
-                                              (plist-get o :title)
-                                              (plist-get o :ts)
-                                              (plist-get o :header)))))
-    ))
-
-;; (tsp:export-ts-property "20190226-000000")
-;; (tsp:export-ts-property "20210325-093001")
 
 ;;; ROADMAP
-;;;
-;;; from a timestamp, collect all files with type, size, last
-;;; update time. if file is text, collect ordinary time strings
-;;; in side, and additionally if file is org, collect its title,
-;;; links, and org timestamps inside.
 ;;;
 ;;; Have a sexp based ts database! Update when an associated file
 ;;; has been updated since last check. Allow force update as
@@ -151,7 +109,7 @@ timestring."
 ;;;
 ;;;   From db like this, we can make a directed graph (another db!)
 ;;;
-;;;  and write an exporter for this db.. export to an org buffer.
+;;;   and write an exporter for this db.. export to an org buffer.
 ;;;
 ;;;
 ;;; From a file whose name contains a timestring, let the user be
@@ -159,7 +117,3 @@ timestring."
 ;;; associated files are presented and linked. If no data is
 ;;; available, ask the user if initiate.
 
-(defun tsp:ts-property (ts))
-  ;; TODO
-  ;; 1. grab file types
-  ;; 2. grab file last-update time
