@@ -75,13 +75,18 @@ This exporter should render an org buffer:
 **** org-links
 %s
 "
+
                         (f-filename file)
                         (file-size-human-readable size)
                         last-update
                         timestamps
                         abs-path
                         org-header
-                        org-links)))
+                        (apply #'concat
+                               (loop for l in org-links
+                                     collect (format "[[%s]]\n" l)))
+
+                        )))
 
             (list (eval `(concat "\n" "** " "related ts"
                                  "\n" ,@(loop for ts in ts-list
@@ -97,11 +102,11 @@ This exporter should render an org buffer:
   (switch-to-buffer-other-window tsp:default-buffer))
 
 ;; TEST
-(tsp:export-ts-prop-to-buffer
- '(
-   "20111028-152106"
-   "20111028-152419"
-   "20210327-081236"
-   ))
+;; (tsp:export-ts-prop-to-buffer
+;;  '(
+;;    "20111028-152106"
+;;    "20111028-152419"
+;;    "20210327-081236"
+;;    ))
 
 (provide 'tsp-export)
