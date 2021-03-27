@@ -1,18 +1,23 @@
 ;;; tsp.el -mode -*- coding: utf-8; lexical-binding: t; -*-
 
-;; tsp.el -- Timestamp Properties
+;; Timestamp Properties
 ;;
-;; The main function should do exactly one thing: provided a
-;; timestamp (e.g. "20210325-160115"), it pulls everything of
-;; interest into a list.
+;; The main function #'tsp:file-prop should do exactly one thing:
+;; provided a timestamp (e.g. "20210325-160115"), it pulls
+;; everything of interest into a list.
 
+
+
+;; External dependencies
 (require 'f)
 (require 'rx)
 
+;; Internal dependencies
 (let ((here (nth 1 (s-split " " (pwd)))))
   (add-to-list 'load-path here))
 (require 'tsp-setup)
 (require 'tsp-format)
+(require 'tsp-org-parser)
 
 (defun tsp:file-paths<-ts (ts)
   "Force fetch the list of files under TSP:LIB whose names
@@ -62,61 +67,17 @@ timestring."
       (setf org-header (tsp:get-org-header file))
       (setf org-links (tsp:get-org-links file)))
 
-    (list :abs-path abs-path
-          :extension extension
-          :size size
-          :last-update last-update
-          :timestamps timestamps
-          ;; The followings only work for org files.
-          :org-title org-title
-          :org-header org-header
-          :org-links org-links)))
+    (list
+     :abs-path abs-path
+     :extension extension
+     :size size
+     :last-update last-update
+     :timestamps timestamps
 
-(defun tsp:search (ts)
-  "TODO"
-
-  ;; return files
-  (let* ((files (-flatten
-                 (loop for dir in tsp:lib
-                       collect (loop for file in (-flatten (f-files dir))
-                                     if (string-match ts (f-base file))
-                                     collect file))))
-         (org-files (loop for file in files
-                          if (equal (f-ext file) "org")
-                          collect file)))
-    (list :files files
-          :org-files (mapcar (lambda (o) (list
-                                          :path o
-                                          :title (tsp:get-org-title o)
-                                          :header (tsp:get-org-header o)
-                                          :ts (tsp:extract-ts-from-string (f-read o))))
-                             org-files))))
-
-;; testing -- main entry point
-;; (tsp:search "20181229-000000")
-;; (tsp:search "20190226-000000")
-;; (tsp:search "20210325-093001")
-
-(defun tsp:read-org-file (file)
-  "Expect FILE to be an org file. Return its org data."
-  (with-temp-buffer
-    (goto-char (point-max))
-    (insert (f-read file))
-    (goto-char (point-min))
-    (org-element-parse-buffer)))
-
-(defun tsp:get-org-title (file)
-  "Expect FILE to be an org file with a title. Return the title
-as a string."
-  (let* ((data (tsp:read-org-file file))
-         (keyword (org-element-map data 'keyword 'identity nil t)))
-    (and keyword (org-element-property :value keyword))))
-
-(defun tsp:get-org-header (file)
-  "Expect FILE to be an org file. Return its content, as a
-string, up to the first headline."
-  (let ((str (f-read file)))
-    (subseq str 0 (string-match "\n\\*" str))))
+     ;; Org files specifics.
+     :org-title org-title
+     :org-header org-header
+     :org-links org-links)))
 
 ;; A quick narrow-down timestamp search utility:
 (defun tsp:extract-ts-from-string (str)
@@ -177,15 +138,6 @@ string, up to the first headline."
 ;; (tsp:export-ts-property "20190226-000000")
 ;; (tsp:export-ts-property "20210325-093001")
 
-(defun tsp:get-ts-from-org (org-file)
-  "Expect ORG-FILE to be an org file. Parse all org timestamps in
-it, and translate them into our ts format."
-  (cl-labels ((ts<-time (time) (ts-format tsp:ts-format time)))
-    (mapcar #'ts<-time
-            (mapcar #'ts-parse-org
-                    (org-element-map (tsp:read-org-file org-file) 'timestamp
-                      (lambda (ts) (org-element-property :raw-value ts)))))))
-
 ;;; ROADMAP
 ;;;
 ;;; from a timestamp, collect all files with type, size, last
@@ -211,10 +163,3 @@ it, and translate them into our ts format."
   ;; TODO
   ;; 1. grab file types
   ;; 2. grab file last-update time
-
-(defun tsp:get-org-links (org-file)
-  (org-element-map
-      (tsp:read-org-file org-file) 'link
-    ;; TODO need to resolve links for file type - this is crucial
-    (lambda (link)
-      (org-element-property :raw-link link))))
