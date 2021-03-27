@@ -54,9 +54,8 @@ Next, break them into tokens, and check if they are as expected."
   \"20201130-153450\" is a legit timestring.")
 
 (defun tsp:check-full-ts-format (ts)
-  "Check if TS is a string that represents a timestamp."
+  "Check if TS is a string that follows the full timestamp
+format."
   (string-match tsp:full-ts-format ts))
-
-
 
 (provide 'tsp-format)
