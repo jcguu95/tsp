@@ -1,13 +1,5 @@
 ;;; tsp.el -mode -*- coding: utf-8; lexical-binding: t; -*-
 
-;; Timestamp Properties
-;;
-;; The main function #'tsp:file-prop should do exactly one thing:
-;; provided a timestamp (e.g. "20210325-160115"), it pulls
-;; everything of interest into a list.
-
-
-
 ;; External dependencies
 (require 'f)
 (require 'rx)

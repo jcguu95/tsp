@@ -2,6 +2,12 @@
 
 TODO
 
+;; Timestamp Properties
+;;
+;; The main function #'tsp:file-prop should do exactly one thing:
+;; provided a timestamp (e.g. "20210325-160115"), it pulls
+;; everything of interest into a list.
+
 * Road map
 
 1. Have a s-exp based ts database! Update when an associated file
