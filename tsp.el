@@ -11,7 +11,7 @@
 (require 'tsp-format)
 (require 'tsp-org-parser)
 
-(defun tsp:file-paths<-ts (ts)
+(defun tsp:files<-ts (ts)
   "Force fetch the list of files under TSP:LIB whose names
 contain the given timestamp TS. Expect TS to be a full
 timestring."
@@ -27,6 +27,8 @@ timestring."
          collect (loop for file in (-flatten (f-files dir))
                        if (string-match ts (f-base file))
                        collect file))))
+
+
 
 (defun tsp:file-prop (file)
   "Return the properties of the given FILE."
@@ -69,13 +71,8 @@ timestring."
      ;; Org files specifics.
      :org-title org-title
      :org-header org-header
-     :org-links org-links               ;; TODO resolve file type links
+     :org-links org-links ;; TODO resolve file type links
      )))
-
-(defun tsp:export-file-prop (file-prop)
-  "Expect input to be the output of #'TSP:FILE-PROP."
-  ;; TODO
-  )
 
 (defun tsp:extract-ts-from-string (str)
   "The core utility that extracts time stamps from any given
