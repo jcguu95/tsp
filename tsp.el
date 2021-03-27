@@ -32,15 +32,17 @@
       (f-directories "~/data/storage/memories")
       do (add-to-list 'tsp:lib dir))
 
+(defun)
+
 (defun tsp:search (ts)
   "Expect TS to be a string that represents a timestamp in the
   format YYYYmmdd-HHMMSS."
 
   ;; format check
   (unless (tsp:check-full-ts-format ts)
-    (error "TS is not in the full timestamp format."))
+    (error "TS is not a full timestamp."))
   (unless (tsp:check-ts-format ts)
-    (error "TS is not in the full timestamp format."))
+    (error "TS is not a timestamp."))
 
   ;; return files
   (let* ((files (-flatten
@@ -141,8 +143,8 @@ string, up to the first headline."
                                               (plist-get o :header)))))
     ))
 
-(my/export-ts-property "20190226-000000")
-(my/export-ts-property "20210325-093001")
+;; (my/export-ts-property "20190226-000000")
+;; (my/export-ts-property "20210325-093001")
 
 
 
