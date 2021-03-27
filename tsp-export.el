@@ -11,12 +11,14 @@
     (insert str)
     (read-only-mode 1)))
 
+;;;
 ;; (defun tsp:export-file-prop (file-prop)
 ;;   "TODO I don't yet know how to extract and embed org subtrees.
 ;; So currently I wrote a boiler plate. But ultimately, I should get
 ;; back and write a proper #'export-file-prop.
 
 ;;   Expect input to be the output of #'TSP:FILE-PROP.")
+;;;
 
 (defun tsp:export-ts-prop-to-string (ts)
   "

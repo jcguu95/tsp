@@ -69,7 +69,7 @@ timestring."
      ;; Org files specifics.
      :org-title org-title
      :org-header org-header
-     :org-links org-links ;; TODO resolve file type links
+     :org-links org-links ;; TODO resolve file type links, attachment type.. etc?
      )))
 
 (defun tsp:extract-ts-from-string (str)
