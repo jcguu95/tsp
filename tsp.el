@@ -6,6 +6,7 @@
 ;; timestamp (e.g. "20210325-160115"), it pulls everything of
 ;; interest into a list.
 
+(require 'f)
 (require 'rx)
 
 (let ((here (nth 1 (s-split " " (pwd)))))
@@ -32,23 +33,40 @@ timestring."
 
 (defun tsp:file-prop (file)
   "Return the properties of the given FILE."
-  (list :abs-path (file-truename file)
-        :ext (f-ext file)
-        :size (f-size file)
-        :last-update (format-time-string
+  (let ((abs-path (file-truename file))
+        (extension (f-ext file))
+        (size (f-size file))
+        (last-update (format-time-string
                       "%Y%m%d-%H%M%S"
-                      (nth 5 (file-attributes "~")))
+                      (nth 5 (file-attributes "~"))))
+        (timestamps (tsp:extract-ts-from-string abs-path))
+        org-title
+        org-header
+        org-links)
 
-        :timestamps nil ;; TODO
-        ;; The followings only work for org files.
-        :org-title nil  ;; TODO
-        :org-header nil ;; TODO
-        :org-links nil  ;; TODO
-        ))
+    ;; If plain-text, add timestamps from the content of FILE.
+    (when (member extension '("org" "md" "txt"))
+      (setf timestamps
+            (concatenate 'list
+                         timestamps
+                         (tsp:extract-ts-from-string (f-read file)))))
+
+    ;; If org, add timestamps from the org timestamps in FILE.
+    ;; TODO
+
+    (list :abs-path abs-path
+          :extension extension
+          :size size
+          :last-update last-update
+          :timestamps timestamps
+          ;; The followings only work for org files.
+          :org-title org-title   ;; TODO
+          :org-header org-header ;; TODO
+          :org-links org-links   ;; TODO
+          )))
 
 (defun tsp:search (ts)
   "TODO"
-
 
   ;; return files
   (let* ((files (-flatten
@@ -64,7 +82,7 @@ timestring."
                                           :path o
                                           :title (my/parse-org-title o)
                                           :header (my/get-org-header o)
-                                          :ts (my/extract-ts-from-string (f-read o))))
+                                          :ts (tsp:extract-ts-from-string (f-read o))))
                              org-files))))
 
 ;; testing -- main entry point
@@ -94,9 +112,9 @@ string, up to the first headline."
     (subseq str 0 (string-match "\n\\*" str))))
 
 ;; A quick narrow-down timestamp search utility:
-(defun my/extract-ts-from-string (str)
+(defun tsp:extract-ts-from-string (str)
 ;; ;; test cases
-;; (mapcar #'my/extract-ts-from-string
+;; (mapcar #'tsp:extract-ts-from-string
 ;;         (list
 ;;          "This is a long--message- asd -s--20210107 -12--sd ok"
 ;;          "This is a long--message- asd -s--20210107-12--sd ok"
