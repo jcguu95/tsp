@@ -182,3 +182,26 @@ Next, break them into tokens, and check if they are as expected."
 
 (my/export-ts-property "20190226-000000")
 (my/export-ts-property "20210325-093001")
+
+
+
+;;; ROADMAP
+;;;
+;;; from a timestamp, collect all files with type, size, last
+;;; update time. if file is text, collect ordinary time strings
+;;; in side, and additionally if file is org, collect its title,
+;;; links, and org timestamps inside.
+;;;
+;;; Have a sexp based ts database! Update when an associated file
+;;; has been updated since last check. Allow force update as
+;;; well.
+;;;
+;;;   From db like this, we can make a directed graph (another db!)
+;;;
+;;;  and write an exporter for this db.. export to an org buffer.
+;;;
+;;;
+;;; From a file whose name contains a timestring, let the user be
+;;; able to quickly get to the exported buffer, in which all
+;;; associated files are presented and linked. If no data is
+;;; available, ask the user if initiate.
