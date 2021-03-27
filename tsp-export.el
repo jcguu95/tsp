@@ -83,9 +83,10 @@ This exporter should render an org buffer:
                         org-header
                         org-links)))
 
-            (list (concat "\n" "** " "related ts"
-                          "\n" (format "%s" ts-list) ;TODO still need to turn into tsl links
-                          "\n\n"))))))
+            (list (eval `(concat "\n" "** " "related ts"
+                                 "\n" ,@(loop for ts in ts-list
+                                              collect (format "[[tsl:%s]]\n" ts))
+                                 "\n\n")))))))
 
 
 (defun tsp:export-ts-prop-to-buffer (ts-list)
@@ -96,11 +97,11 @@ This exporter should render an org buffer:
   (switch-to-buffer-other-window tsp:default-buffer))
 
 ;; TEST
-;; (tsp:export-ts-prop-to-buffer
-;;  '(
-;;    "20111028-152106"
-;;    "20111028-152419"
-;;    "20210327-081236"
-;;    ))
+(tsp:export-ts-prop-to-buffer
+ '(
+   "20111028-152106"
+   "20111028-152419"
+   "20210327-081236"
+   ))
 
 (provide 'tsp-export)
