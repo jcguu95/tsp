@@ -28,8 +28,6 @@ timestring."
                        if (string-match ts (f-base file))
                        collect file))))
 
-
-
 (defun tsp:file-prop (file)
   "Return the properties of the given FILE."
   (let* ((abs-path (file-truename file))

@@ -19,7 +19,8 @@
 ;;   Expect input to be the output of #'TSP:FILE-PROP.")
 
 (defun tsp:export-ts-prop-to-string (ts)
-  "This exporter should render an org buffer:
+  "
+This exporter should render an org buffer:
 * ts
 ** files
 *** f1
@@ -30,28 +31,34 @@
 ...
 ** related ts
 + [[tsl:20201010-010101]]
-+ [[tsl:20210101-101101]]"
-  (apply #'concat
-         (concatenate 'list
++ [[tsl:20210101-101101]]
+"
+  (let ((files (tsp:files<-ts ts))
+        (ts-list nil))
+    (apply #'concat
 
-                      (list (concat "* " ts)
-                            (concat "\n")
-                            (concat "** " "files"))
+           (concatenate
+            'list
 
-                      (loop for file in (tsp:files<-ts ts)
-                            collect
+            (list (concat "* " ts)
+                  (concat "\n")
+                  (concat "** " "files"))
 
-                            (let* ((prop (tsp:file-prop file))
-                                   (abs-path (plist-get prop :abs-path))
-                                   (extension (plist-get prop :extension))
-                                   (size (plist-get prop :size))
-                                   (last-update (plist-get prop :last-update))
-                                   (timestamps (plist-get prop :time-stamp))
-                                   (org-title (plist-get prop :org-title))
-                                   (org-header (plist-get prop :org-header))
-                                   (org-links (plist-get prop :org-links)))
-                              (format
-                               "
+            (loop
+             for file in files
+             collect (let* ((prop (tsp:file-prop file))
+                            (abs-path (plist-get prop :abs-path))
+                            (extension (plist-get prop :extension))
+                            (size (plist-get prop :size))
+                            (last-update (plist-get prop :last-update))
+                            (timestamps (plist-get prop :timestamps))
+                            (org-title (plist-get prop :org-title))
+                            (org-header (plist-get prop :org-header))
+                            (org-links (plist-get prop :org-links)))
+
+                       (setf ts-list (concatenate 'list ts-list timestamps))
+                       (format
+                        "
 *** %s
 :PROPERTIES:
 :SIZE: %s
@@ -68,15 +75,18 @@
 **** org-links
 %s
 "
-                               (f-filename file)
-                               (file-size-human-readable size)
-                               last-update
-                               timestamps
-                               abs-path
-                               org-header
-                               org-links)))
+                        (f-filename file)
+                        (file-size-human-readable size)
+                        last-update
+                        timestamps
+                        abs-path
+                        org-header
+                        org-links)))
 
-                      (list (concat "\n" "** " "related ts" "\n\n")))))
+            (list (concat "\n" "** " "related ts"
+                          "\n" (format "%s" ts-list) ;TODO still need to turn into tsl links
+                          "\n\n"))))))
+
 
 (defun tsp:export-ts-prop-to-buffer (ts-list)
   (tsp:overwrite-buffer
@@ -85,7 +95,12 @@
                 collect (tsp:export-ts-prop-to-string ts))))
   (switch-to-buffer-other-window tsp:default-buffer))
 
-(tsp:export-ts-prop-to-buffer '("20111028-152106"
-                                "20111028-152419"))
+;; TEST
+;; (tsp:export-ts-prop-to-buffer
+;;  '(
+;;    "20111028-152106"
+;;    "20111028-152419"
+;;    "20210327-081236"
+;;    ))
 
 (provide 'tsp-export)
