@@ -10,39 +10,31 @@
 
 (let ((here (nth 1 (s-split " " (pwd)))))
   (add-to-list 'load-path here))
+(require 'tsp-setup)
 (require 'tsp-format)
 
-
-
-(defvar tsp:lib nil
-  "The variable that stores the list of directories to search.")
-
-(defvar tsp:main-note-dir
-  "~/data/storage/+org/wiki/fleeting"
-  "The path is where the main notes are expected to be.")
-
-(loop for dir in
-      '("~/data/storage/recordings"
-        "~/data/storage/memories"
-        "~/data/storage/+org/wiki/fleeting"
-        "~/data/storage/+org/store")
-      do (add-to-list 'tsp:lib dir))
-
-(loop for dir in
-      (f-directories "~/data/storage/memories")
-      do (add-to-list 'tsp:lib dir))
-
-(defun)
-
-(defun tsp:search (ts)
-  "Expect TS to be a string that represents a timestamp in the
-  format YYYYmmdd-HHMMSS."
-
-  ;; format check
+(defun tsp:ts-files--force (ts)
+  "Force fetch the list of files under TSP:LIB whose names
+contain the given timestamp TS. Expect TS to be a full
+timestring."
+  ;; Check format.
   (unless (tsp:check-full-ts-format ts)
     (error "TS is not a full timestamp."))
   (unless (tsp:check-ts-format ts)
     (error "TS is not a timestamp."))
+
+  ;; Grab all files.
+  (-flatten
+   (loop for dir in tsp:lib
+         collect (loop for file in (-flatten (f-files dir))
+                       if (string-match ts (f-base file))
+                       collect file)))
+
+  )
+
+(defun tsp:search (ts)
+  "TODO"
+
 
   ;; return files
   (let* ((files (-flatten
@@ -170,3 +162,6 @@ string, up to the first headline."
 ;;; available, ask the user if initiate.
 
 (defun tsp:ts-property (ts))
+  ;; TODO
+  ;; 1. grab file types
+  ;; 2. grab file last-update time
