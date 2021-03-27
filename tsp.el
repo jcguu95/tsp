@@ -170,7 +170,14 @@ string, up to the first headline."
 ;; (my/export-ts-property "20190226-000000")
 ;; (my/export-ts-property "20210325-093001")
 
-
+(defun tsp:get-ts-from-org (org-file)
+  "Expect ORG-FILE to be an org file. Parse all org timestamps in
+it, and translate them into our ts format."
+  (cl-labels ((ts<-time (time) (ts-format tsp:ts-format time)))
+    (mapcar #'ts<-time
+            (mapcar #'ts-parse-org
+                    (org-element-map (my/read-org-file org-file) 'timestamp
+                      (lambda (ts) (org-element-property :raw-value ts)))))))
 
 ;;; ROADMAP
 ;;;
