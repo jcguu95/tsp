@@ -77,18 +77,25 @@ timestring."
      ;; Org files specifics.
      :org-title org-title
      :org-header org-header
-     :org-links org-links)))
+     :org-links org-links               ;; TODO resolve file type links
+     )))
 
-;; A quick narrow-down timestamp search utility:
+(defun tsp:export-file-prop (file-prop)
+  "Expect input to be the output of #'TSP:FILE-PROP."
+  ;; TODO
+  )
+
 (defun tsp:extract-ts-from-string (str)
-;; ;; test cases
-;; (mapcar #'tsp:extract-ts-from-string
-;;         (list
-;;          "This is a long--message- asd -s--20210107 -12--sd ok"
-;;          "This is a long--message- asd -s--20210107-12--sd ok"
-;;          "This is a long--message- asd -s--20210131-085932--sd ok"
-;;          "This is a long--message- asd -s--20210170--sd ok"
-;;          "This is a long--message- asd -s--202101--sd ok"))
+  "The core utility that extracts time stamps from any given
+string."
+  ;; ;; test cases
+  ;; (mapcar #'tsp:extract-ts-from-string
+  ;;         (list
+  ;;          "This is a long--message- asd -s--20210107 -12--sd ok"
+  ;;          "This is a long--message- asd -s--20210107-12--sd ok"
+  ;;          "This is a long--message- asd -s--20210131-085932--sd ok"
+  ;;          "This is a long--message- asd -s--20210170--sd ok"
+  ;;          "This is a long--message- asd -s--202101--sd ok"))
   (-uniq
    (-filter (lambda (x) (tsp:check-ts-format x))
             (-flatten
@@ -99,21 +106,3 @@ timestring."
                   word-end)
 
               str)))))
-
-
-;;; ROADMAP
-;;;
-;;; Have a sexp based ts database! Update when an associated file
-;;; has been updated since last check. Allow force update as
-;;; well.
-;;;
-;;;   From db like this, we can make a directed graph (another db!)
-;;;
-;;;   and write an exporter for this db.. export to an org buffer.
-;;;
-;;;
-;;; From a file whose name contains a timestring, let the user be
-;;; able to quickly get to the exported buffer, in which all
-;;; associated files are presented and linked. If no data is
-;;; available, ask the user if initiate.
-
