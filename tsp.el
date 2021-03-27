@@ -4,6 +4,8 @@
 ;; timestamp (e.g. "20210325-160115"), it pulls everything of
 ;; interest into a list.
 
+(require 'rx)
+
 (defvar tsp:lib nil
   "The variable that stores the list of directories to search.")
 
@@ -22,25 +24,32 @@
       (f-directories "~/data/storage/memories")
       do (add-to-list 'tsp:lib dir))
 
+(defvar tsp:ts-format
+  (rx-to-string
+   `(seq (repeat 8 digit)
+         "-"
+         (repeat 6 digit)))
+  "The expected timestring format in this program. For example,
+  \"20201130-153450\" is a legit timestring.")
+
+(defun tsp:format-check (ts)
+  "Check if TS is a string that represents a timestamp."
+  (string-match tsp:ts-format ts))
+
 (defun tsp:search (ts)
   "Expect TS to be a string that represents a timestamp in the
   format YYYYmmdd-HHMMSS."
 
   ;; format check
-  (unless (string-match
-           (rx-to-string
-            `(seq (repeat 8 digit)
-                  "-"
-                  (repeat 6 digit)))
-           ts)
+  (unless (tsp:format-check ts)
     (error "TS is not in the expected format."))
 
   ;; return files
   (let* ((files (-flatten
-                (loop for dir in tsp:lib
-                      collect (loop for file in (-flatten (f-files dir))
-                                    if (string-match ts (f-base file))
-                                    collect file))))
+                 (loop for dir in tsp:lib
+                       collect (loop for file in (-flatten (f-files dir))
+                                     if (string-match ts (f-base file))
+                                     collect file))))
          (org-files (loop for file in files
                           if (equal (f-ext file) "org")
                           collect file)))
@@ -205,3 +214,5 @@ Next, break them into tokens, and check if they are as expected."
 ;;; able to quickly get to the exported buffer, in which all
 ;;; associated files are presented and linked. If no data is
 ;;; available, ask the user if initiate.
+
+(defun tsp:ts-property (ts))
