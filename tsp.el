@@ -13,7 +13,7 @@
 (require 'tsp-setup)
 (require 'tsp-format)
 
-(defun tsp:ts-files--force (ts)
+(defun tsp:file-paths<-ts (ts)
   "Force fetch the list of files under TSP:LIB whose names
 contain the given timestamp TS. Expect TS to be a full
 timestring."
@@ -28,9 +28,23 @@ timestring."
    (loop for dir in tsp:lib
          collect (loop for file in (-flatten (f-files dir))
                        if (string-match ts (f-base file))
-                       collect file)))
+                       collect file))))
 
-  )
+(defun tsp:file-prop (file)
+  "Return the properties of the given FILE."
+  (list :abs-path (file-truename file)
+        :ext (f-ext file)
+        :size (f-size file)
+        :last-update (format-time-string
+                      "%Y%m%d-%H%M%S"
+                      (nth 5 (file-attributes "~")))
+
+        :timestamps nil ;; TODO
+        ;; The followings only work for org files.
+        :org-title nil  ;; TODO
+        :org-header nil ;; TODO
+        :org-links nil  ;; TODO
+        ))
 
 (defun tsp:search (ts)
   "TODO"
