@@ -30,6 +30,10 @@
       (f-join tsp:db-ts (concat ts ".lisp"))
     (error "TS is expected to be a proper timestamp.")))
 
+(defun tsp:ts-prop (ts)
+  "Read ts-prop for TS from the database."
+  (tsp:read-list-from-file (tsp:ts-prop-path ts)))
+
 (defun tsp:update-ts-prop-from-a-file-and-a-ts (file ts &optional force)
   "A basic database-util that update the ts-prop for TS by the
   information provided by FILE. This is the bootstrapper for the
@@ -39,7 +43,7 @@ If FORCE is t, update database no regardless of the last update
 of FILE."
   ;; First make sure that ts-prop is non-nil.
   (let* ((ts-prop-path (tsp:ts-prop-path ts))
-         (ts-prop (tsp:read-list-from-file ts-prop-path)))
+         (ts-prop (tsp:ts-prop ts)))
     (when (null ts-prop)
       (progn
         (setf ts-prop `(:ts ,ts :file-props nil))
@@ -49,7 +53,7 @@ of FILE."
   (if (member ts (tsp:ts-of-file file))
       (let* ((abso (file-truename file))
              (ts-prop-path (tsp:ts-prop-path ts))
-             (ts-prop (tsp:read-list-from-file ts-prop-path))
+             (ts-prop (tsp:ts-prop ts))
              (file-props (plist-get ts-prop :file-props))
              (file-prop (seq-find (lambda (x)
                                     (equal abso

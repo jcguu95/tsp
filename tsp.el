@@ -20,6 +20,7 @@
 contain the given timestamp TS. Expect TS to be a full
 timestring."
   (if from-db
+
       (mapcar
        (lambda (x)
          (plist-get x :abs-path))
