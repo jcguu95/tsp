@@ -7,6 +7,7 @@
 ;; Internal dependencies
 (let ((here (nth 1 (s-split " " (pwd)))))
   (add-to-list 'load-path here))
+(require 'tsp-db)
 (require 'tsp-setup)
 (require 'tsp-format)
 (require 'tsp-org-parser)
@@ -28,14 +29,17 @@ timestring."
                        if (string-match ts (f-base file))
                        collect file))))
 
+(defun tsp:last-update-of-file (file)
+  "A general util that returns the last update time of FILE."
+  (format-time-string tsp:ts-format
+                      (nth 5 (file-attributes file))))
+
 (defun tsp:file-prop (file)
   "Return the properties of the given FILE."
   (let* ((abs-path (file-truename file))
          (extension (f-ext file))
          (size (f-size file))
-         (last-update (format-time-string
-                       "%Y%m%d-%H%M%S"
-                       (nth 5 (file-attributes "~"))))
+         (last-update (tsp:last-update-of-file file))
          (timestamps (tsp:extract-ts-from-string abs-path))
          org-title
          org-header
@@ -83,13 +87,29 @@ string."
   ;;          "This is a long--message- asd -s--20210131-085932--sd ok"
   ;;          "This is a long--message- asd -s--20210170--sd ok"
   ;;          "This is a long--message- asd -s--202101--sd ok"))
-  (-uniq
-   (-filter (lambda (x) (tsp:check-ts-format x))
-            (-flatten
-             (s-match-strings-all
+  (let ((result (-uniq
+                 (-filter (lambda (x) (tsp:check-ts-format x))
+                          (-flatten
+                           (s-match-strings-all
 
-              (rx word-start
-                  (** 4 15 (any digit "-"))
-                  word-end)
+                            (rx word-start
+                                (** 4 15 (any digit "-"))
+                                word-end)
 
-              str)))))
+                            str)
+
+                           )))))
+
+    ;; This is just a weird hack to prevent "legal" timestrings
+    ;; like "101010" .. and it would still have some edge cases.
+    (-filter (lambda (x) (>= (length x) 8)) result)
+
+    ))
+
+(defun tsp:all-ts ()
+  "Return the list of all available timestamps from the names of
+  the files under TSP:LIB."
+  (-flatten
+   (loop for dir in tsp:lib
+         collect (loop for file in (f-files dir)
+                       collect (tsp:extract-ts-from-string file)))))
