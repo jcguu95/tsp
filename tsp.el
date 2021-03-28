@@ -78,11 +78,3 @@ timestring."
      :org-header org-header
      :org-links org-links ;; TODO resolve file type links, attachment type.. etc?
      )))
-
-(defun tsp:all-ts ()
-  "Return the list of all available timestamps from the names of
-  the files under TSP:LIB."
-  (-flatten
-   (loop for dir in tsp:lib
-         collect (loop for file in (f-files dir)
-                       collect (tsp:extract-ts-from-string file)))))

@@ -14,6 +14,16 @@
   "The subroot that stores TS related data.")
 (mkdir tsp:db-ts t)
 
+(defun tsp:all-ts (&key from-db)
+  "Return the list of all available timestamps either from the
+  database or the names of the files under TSP:LIB."
+  (if from-db
+      (mapcar #'f-base (f-files tsp:db-ts))
+    (-flatten
+     (loop for dir in tsp:lib
+           collect (loop for file in (f-files dir)
+                         collect (tsp:extract-ts-from-string file))))))
+
 (defun tsp:ts-prop-path (ts)
   "Return the path for the db of TS's ts-prop."
   (if (tsp:check-ts-format ts)
