@@ -36,6 +36,83 @@ This exporter should render an org buffer:
 + [[tsl:20210101-101101]]
 "
   ;; TODO make an option for it to read from db.
+  (let ((file-props (plist-get
+                     (tsp:ts-prop ts)
+                     :file-props))
+        ts-list)
+    (apply #'concat
+
+           (concatenate
+            'list
+
+            (list (concat "* " ts)
+                  (concat "\n")
+                  (concat "** " "files"))
+
+            (loop
+             for file-prop in file-props
+             collect (let* ((abs-path (plist-get file-prop :abs-path))
+                            (extension (plist-get file-prop :extension))
+                            (size (plist-get file-prop :size))
+                            (last-update (plist-get file-prop :last-update))
+                            (timestamps (plist-get file-prop :timestamps))
+                            (org-title (plist-get file-prop :org-title))
+                            (org-header (plist-get file-prop :org-header))
+                            (org-links (plist-get file-prop :org-links)))
+
+                       (setf ts-list (concatenate 'list ts-list timestamps))
+                       (format
+                        "
+*** %s
+:PROPERTIES:
+:SIZE: %s
+:LAST-UPDATE: %s
+:TIMESTAMPS: %s
+:END:
+
+**** path
+[[file:%s]]
+
+**** org-header
+%s
+
+**** org-links
+%s
+"
+
+                        (f-filename abs-path)
+                        (file-size-human-readable size)
+                        last-update
+                        timestamps
+                        abs-path
+                        org-header
+                        (apply #'concat
+                               (loop for l in org-links
+                                     collect (format "[[%s]]\n" l)))
+
+                        )))
+
+            (list (eval `(concat "\n" "** " "related ts"
+                                 "\n" ,@(loop for ts in ts-list
+                                              collect (format "[[tsl:%s]]\n" ts))
+                                 "\n\n")))))))
+
+(defun tsp:export-ts-prop-to-string--deprecated (ts)
+  "
+This exporter should render an org buffer:
+* ts
+** files
+*** f1
+...
+...
+*** f2
+...
+...
+** related ts
++ [[tsl:20201010-010101]]
++ [[tsl:20210101-101101]]
+"
+  ;; TODO make an option for it to read from db.
   (let ((files (tsp:files<-ts ts :from-db t))
         (ts-list nil))
     (apply #'concat
@@ -105,11 +182,11 @@ This exporter should render an org buffer:
   (switch-to-buffer-other-window tsp:default-buffer))
 
 ;; TEST
-;; (tsp:export-ts-prop-to-buffer
-;;  '(
-;;    "20111028-152106"
-;;    "20111028-152419"
-;;    "20210327-081236"
-;;    ))
+(tsp:export-ts-prop-to-buffer
+ '(
+   "20111028-152106"
+   "20111028-152419"
+   "20210327-081236"
+   ))
 
 (provide 'tsp-export)
