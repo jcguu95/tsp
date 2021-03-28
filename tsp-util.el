@@ -58,4 +58,9 @@ name."
   (-union (-difference x y)
           (-difference x y)))
 
+(defun tsp:last-update-of-file (file)
+  "A general util that returns the last update time of FILE."
+  (format-time-string tsp:ts-format
+                      (nth 5 (file-attributes file))))
+
 (provide 'tsp-util)

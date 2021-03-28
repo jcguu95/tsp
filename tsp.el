@@ -28,6 +28,7 @@ timestring."
        (plist-get (tsp:read-list-from-file
                    (tsp:ts-prop-path ts))
                   :file-props))
+
     (progn
       ;; Check format.
       (unless (tsp:check-full-ts-format ts)
@@ -40,12 +41,6 @@ timestring."
              collect (loop for file in (-flatten (f-files dir))
                            if (string-match ts (f-base file))
                            collect file))))))
-
-(defun tsp:last-update-of-file (file)
-  "A general util that returns the last update time of FILE."
-  ;; TODO add option for it to read from db.
-  (format-time-string tsp:ts-format
-                      (nth 5 (file-attributes file))))
 
 (defun tsp:file-prop (file)
   "Return the properties of the given FILE."
