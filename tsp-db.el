@@ -10,6 +10,10 @@
 ;; 1. #'tsp:all-ts
 ;; 2. #'tsp:ts-prop
 
+;; TODO I think there's a bug.. when a file has been removed,
+;; which nukes a timestamp, the ts-prop of that timestamp will
+;; still remain in the database.
+
 (defvar tsp:db "~/.tsp"
   "The root of TSP's database.")
 (mkdir tsp:db t)
@@ -53,7 +57,6 @@ of FILE."
       (progn
         (setf ts-prop `(:ts ,ts :file-props nil))
         (tsp:store-list-in-file ts-prop ts-prop-path))))
-
   ;; Then update database if FILE has changed since last update.
   (if (member ts (tsp:ts-of-file file))
       (let* ((abso (file-truename file))
@@ -114,7 +117,7 @@ FILE."
 
 (defun tsp:dir-info (dir &key from-db)
   "A database-util that reads the database and returns the dir-info for
-DIR." ;; TODO define "dir-info"
+DIR." ;; TODO define "dir-info" clearly in the DOC.
   (let ((abso (file-truename dir)))
     (if from-db
         ;; Read directly from db.
@@ -164,7 +167,7 @@ DIR itself."
 
 (defun tsp:update-ts-prop-from-dir (dir)
   "Another entry point to update ts-prop from the information of
-  DIR, which is expected to be a member under TSP:LIB.
+DIR, which is expected to be a member under TSP:LIB.
 
 Seek if there's any new or removed file since last check. If so,
 force update ts-prop for that file. Do it for each such file.
@@ -182,7 +185,8 @@ function!"
 
     (error "DIR must be a member of TSP:LIB.")))
 
-(loop for dir in tsp:lib
-      do (tsp:update-ts-prop-from-dir dir))
+;; Use case.
+;; (loop for dir in tsp:lib
+;;       do (tsp:update-ts-prop-from-dir dir))
 
 (provide 'tsp-db)
