@@ -2,11 +2,14 @@
 
 (defvar tsp:db "~/.tsp"
   "The root of TSP's database.")
+(mkdir tsp:db t)
+
 (defvar tsp:db-ts
   (f-join tsp:db "ts/")
   "The subroot that stores TS related data.")
-(mkdir tsp:db t)
 (mkdir tsp:db-ts t)
+
+
 
 (defun tsp:store-list-in-file (lst file)
   "A basic util that stores a lisp list into FILE."
@@ -43,8 +46,6 @@ name."
 
 If FORCE is t, update database no regardless of the last update
 of FILE."
-  ;; ts-prop = (:ts ts :file-props (fp1 fp2 ..))
-
   ;; First make sure that ts-prop is non-nil.
   (let* ((ts-prop-path (tsp:ts-prop-path ts))
          (ts-prop (tsp:read-list-from-file ts-prop-path)))
@@ -63,7 +64,6 @@ of FILE."
                                     (equal abso
                                            (plist-get x :abs-path)))
                                   file-props)))
-
         ;; If FILE's last changed time is different from that
         ;; recorded in the db, run the body of the following
         ;; UNLESS block to update information in the db.
@@ -92,11 +92,8 @@ FILE."
           do (tsp:update-ts-prop-from-a-file-and-a-ts
               file ts force))))
 
-
-
-
-
-
+;; Next, write #'tsp:update-ts-prop-from-dir that's built on top
+;; of #'tsp:update-ts-prop-from-file.
 
 (defvar tsp:dir-info-db
   (f-join tsp:db "dir-info.lisp")
@@ -106,35 +103,35 @@ FILE."
   (unless (f-exists-p target)
     (tsp:store-list-in-file nil target)))
 
-;; (
-;;  (:path dir
-;;   :content (f-files dir))
-;;  (:path dir
-;;   :content (f-files dir))
-;; )
-
 (defun tsp:dir-content (dir &key from-db)
   "A general util that returns all contents of DIR."
   (let ((abso (file-truename dir)))
     (if from-db
-        (plist-get (tsp:dir-info dir) :content)
+        (plist-get (tsp:dir-info dir :from-db t) :content)
       (concatenate 'list
                    (f-directories abso)
                    (f-files abso)))))
 
-(defun tsp:dir-info (dir)
-  "A utility that reads the database and returns the dir-info
-for DIR." ;; TODO define "dir-info"
-  (let ((abso (file-truename dir))
-        (content (tsp:read-list-from-file tsp:dir-info-db)))
-    (seq-find (lambda (x)
-                (equal abso (plist-get x :path)))
-              content)))
+(defun tsp:dir-info (dir &key from-db)
+  "A util that reads the database and returns the dir-info for
+DIR." ;; TODO define "dir-info"
+  (let ((abso (file-truename dir)))
+    (if from-db
+        ;; Read directly from db.
+        (let ((content (tsp:read-list-from-file tsp:dir-info-db)))
+          (seq-find (lambda (x)
+                      (equal abso (plist-get x :path)))
+                    content))
+      ;; Compute dir-info on the fly.
+      (list
+       :path abso
+       :last-update (tsp:last-update-of-file abso)
+       :content (tsp:dir-content abso :from-db nil)))))
 
 (defun tsp:update-dir-info (dir)
   (let* ((abso (file-truename dir))
          (content (tsp:read-list-from-file tsp:dir-info-db))
-         (dir-info (tsp:dir-info dir))
+         (dir-info (tsp:dir-info dir :from-db t))
          (last-update (plist-get dir-info :last-update)))
     ;; If dir has changed since last update, delete the old data.
     ;; FIXME something is wrong here
@@ -150,9 +147,7 @@ for DIR." ;; TODO define "dir-info"
              content)))
     ;; And add the new data, regardlessly.
     (add-to-list 'content
-                 `(:path ,abso
-                   :last-update ,(tsp:last-update-of-file abso)
-                   :content ,(tsp:dir-content abso :from-db nil)))
+                 (tsp:dir-info abso :from-db nil))
     ;; Then write the data into file.
     (tsp:store-list-in-file content tsp:dir-info-db)))
 
@@ -170,8 +165,11 @@ and from the DIR itself."
              (-difference new old)))))
 
 (defun tsp:update-ts-prop-from-dir (dir)
-  "Seek if there's any new or removed file since last check. If
-so, force update ts-prop for that file. Do it for each such file.
+  "Another entry point to update ts-prop from the information of
+  DIR, which is expected to be a member under TSP:LIB.
+
+Seek if there's any new or removed file since last check. If so,
+force update ts-prop for that file. Do it for each such file.
 
 Notice - #'tsp:update-ts-prop-from-file bootstraps this
 function!"
@@ -185,5 +183,8 @@ function!"
               do (tsp:update-ts-prop-from-file file)))
 
     (error "DIR must be a member of TSP:LIB.")))
+
+(loop for dir in tsp:lib
+      do (tsp:update-ts-prop-from-dir dir))
 
 (provide 'tsp-db)
