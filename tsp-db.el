@@ -88,8 +88,9 @@ FILE."
           do (tsp:update-ts-prop-from-a-file-and-a-ts file ts))))
 
 ;; TESTING .. great, it works!
-(loop for file in (f-files (nth 4 (reverse tsp:lib)))
-      do (tsp:update-ts-prop-from-file file))
+(loop for dir in tsp:lib
+      do  (loop for file in (f-files dir)
+                do (tsp:update-ts-prop-from-file file)))
 
 
 
