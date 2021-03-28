@@ -35,7 +35,7 @@ This exporter should render an org buffer:
 + [[tsl:20201010-010101]]
 + [[tsl:20210101-101101]]
 "
-  (let ((files (tsp:files<-ts ts))
+  (let ((files (tsp:files<-ts ts :from-db nil))
         (ts-list nil))
     (apply #'concat
 

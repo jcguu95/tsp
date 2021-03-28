@@ -3,6 +3,7 @@
 ;; External dependencies
 (require 'f)
 (require 'rx)
+(require 'ts)
 (require 'dash)
 
 ;; Internal dependencies
@@ -14,22 +15,24 @@
 (require 'tsp-format)
 (require 'tsp-org-parser)
 
-(defun tsp:files<-ts (ts)
+(defun tsp:files<-ts (ts &key from-db)
   "Force fetch the list of files under TSP:LIB whose names
 contain the given timestamp TS. Expect TS to be a full
 timestring."
-  ;; Check format.
-  (unless (tsp:check-full-ts-format ts)
-    (error "TS is not a full timestamp."))
-  (unless (tsp:check-ts-format ts)
-    (error "TS is not a timestamp."))
-
-  ;; Grab all files.
-  (-flatten
-   (loop for dir in tsp:lib
-         collect (loop for file in (-flatten (f-files dir))
-                       if (string-match ts (f-base file))
-                       collect file))))
+  (if from-db
+      "TODO to implement"
+    (progn
+      ;; Check format.
+      (unless (tsp:check-full-ts-format ts)
+        (error "TS is not a full timestamp."))
+      (unless (tsp:check-ts-format ts)
+        (error "TS is not a timestamp."))
+      ;; And grab all files.
+      (-flatten
+       (loop for dir in tsp:lib
+             collect (loop for file in (-flatten (f-files dir))
+                           if (string-match ts (f-base file))
+                           collect file))))))
 
 (defun tsp:last-update-of-file (file)
   "A general util that returns the last update time of FILE."
