@@ -36,10 +36,13 @@ name."
       (f-join tsp:db-ts (concat ts ".lisp"))
     (error "TS is expected to be a proper timestamp.")))
 
-(defun tsp:update-ts-prop-from-a-file-and-a-ts (file ts)
+(defun tsp:update-ts-prop-from-a-file-and-a-ts (file ts &optional force)
   "A basic util that update the ts-prop for TS by the information
   provided by FILE. This is the bootstrapper for the entry point
-  #'tsp:update-ts-prop-from-file."
+  #'tsp:update-ts-prop-from-file.
+
+If FORCE is t, update database no regardless of the last update
+of FILE."
   ;; ts-prop = (:ts ts :file-props (fp1 fp2 ..))
 
   ;; First make sure that ts-prop is non-nil.
@@ -64,8 +67,9 @@ name."
         ;; If FILE's last changed time is different from that
         ;; recorded in the db, run the body of the following
         ;; UNLESS block to update information in the db.
-        (unless (equal (tsp:last-update-of-file file)
-                       (plist-get file-prop :last-update))
+        (when (or force
+                  (not (equal (tsp:last-update-of-file file)
+                              (plist-get file-prop :last-update))))
           ;; FIXME -- use hash-table instead of plist to make the
           ;; updating process more elegant
           (setf file-prop (tsp:file-prop file))
@@ -79,13 +83,13 @@ name."
           (tsp:store-list-in-file ts-prop ts-prop-path)))
     (error "TS must be a timestring that associates with FILE.")))
 
-(defun tsp:update-ts-prop-from-file (file)
+(defun tsp:update-ts-prop-from-file (file &optional force)
   "Entry point for updating the database from the information of
 FILE."
   (let ((abso (file-truename file))
         (ts-list (tsp:ts-of-file file)))
     (loop for ts in ts-list
-          do (tsp:update-ts-prop-from-a-file-and-a-ts file ts))))
+          do (tsp:update-ts-prop-from-a-file-and-a-ts file ts force))))
 
 ;; TESTING .. great, it works!
 (loop for dir in tsp:lib
