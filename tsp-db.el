@@ -38,11 +38,9 @@ name."
 
 (defun tsp:update-ts-prop-from-a-file-and-a-ts (file ts)
   "A basic util that update the ts-prop for TS by the information
-  provided by FILE."
-  ;; TODO do this later - check file last update time if any, and
-  ;; decide to update or not.
-
-  ;; ts-prop = (:ts ts :file-props ((f1 . fp1) (f2. fp2) ..))
+  provided by FILE. This is the bootstrapper for the entry point
+  #'tsp:update-ts-prop-from-file."
+  ;; ts-prop = (:ts ts :file-props (fp1 fp2 ..))
 
   ;; First make sure that ts-prop is non-nil.
   (let* ((ts-prop-path (tsp:ts-prop-path ts))
@@ -52,47 +50,47 @@ name."
         (setf ts-prop `(:ts ,ts :file-props nil))
         (tsp:store-list-in-file ts-prop ts-prop-path))))
 
-  ;; then .. TODO
+  ;; Then update database if FILE has changed since last update.
   (if (member ts (tsp:ts-of-file file))
       (let* ((abso (file-truename file))
              (ts-prop-path (tsp:ts-prop-path ts))
              (ts-prop (tsp:read-list-from-file ts-prop-path))
              (file-props (plist-get ts-prop :file-props))
-             (file-prop (alist-get abso file-props nil nil #'string=)))
+             (file-prop (seq-find (lambda (x)
+                                    (equal abso
+                                           (plist-get x :abs-path)))
+                                  file-props)))
 
-        (when "needs-update-TODO" ; TODO implement this based on the last change time of FILE
-          ;; FIXME --
-          ;; use hash-table instead of alist.
-          ;; to make the updating process more elegant
+        ;; If FILE's last changed time is different from that
+        ;; recorded in the db, run the body of the following
+        ;; UNLESS block to update information in the db.
+        (unless (equal (tsp:last-update-of-file file)
+                       (plist-get file-prop :last-update))
+          ;; FIXME -- use hash-table instead of plist to make the
+          ;; updating process more elegant
           (setf file-prop (tsp:file-prop file))
           (setf file-props
                 (-filter (lambda (x)
-                           (not (string= abso (car x))))
+                           (not (string= abso (plist-get x :abs-path))))
                          file-props))
-          ;; FIXME --
-          )
-        (add-to-list 'file-props (cons abso (tsp:file-prop file)))
-        (plist-put! ts-prop :file-props file-props)
-
-        (tsp:store-list-in-file ts-prop ts-prop-path))
+          ;; FIXME ----------------------------------------------
+          (add-to-list 'file-props (tsp:file-prop file))
+          (plist-put! ts-prop :file-props file-props)
+          (tsp:store-list-in-file ts-prop ts-prop-path)))
     (error "TS must be a timestring that associates with FILE.")))
 
-(tsp:file-prop "~/20181227-000000.org")
-(tsp:update-ts-prop-from-a-file-and-a-ts
- "~/20181227-000000.org" "20181227-000000")
-
-
 (defun tsp:update-ts-prop-from-file (file)
-  ;; ts-prop = (:ts ts :file-props ((f1 . fp1) (f2. fp2) ..))
+  "Entry point for updating the database from the information of
+FILE."
   (let ((abso (file-truename file))
-        (ts-list (tsp:read-list-from-file file))))
-  )
+        (ts-list (tsp:ts-of-file file)))
+    (loop for ts in ts-list
+          do (tsp:update-ts-prop-from-a-file-and-a-ts file ts))))
 
+;; TESTING .. great, it works!
+(loop for file in (f-files (nth 4 (reverse tsp:lib)))
+      do (tsp:update-ts-prop-from-file file))
 
 
 
 (provide 'tsp-db)
-
-      (f-write "(+ 1 2)"
-               'utf-8
-               "~/see")
