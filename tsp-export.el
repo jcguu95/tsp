@@ -1,5 +1,10 @@
 ;;; tsp-export.el -mode -*- coding: utf-8; lexical-binding: t; -*-
 
+;; Entry Points
+;;
+;; 1. #'tsp:export-ts-prop-to-buffer
+;; 2. #'tsp:export-ts-prop-of-file-to-buffer
+
 (defvar tsp:default-buffer
   (get-buffer-create "*TSP*"))
 
