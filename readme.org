@@ -2,23 +2,16 @@
 
 TODO
 
-;; Timestamp Properties
-;;
-;; The main function #'tsp:file-prop should do exactly one thing:
-;; provided a timestamp (e.g. "20210325-160115"), it pulls
-;; everything of interest into a list.
-
 * Road map
 
-+ Have a s-exp based ts database! Update when an associated file
-  has been updated since last check. Allow force update as well.
++ [X] Have a s-exp based ts database! Update when an associated file has been updated since last check. Allow force update as well.
 
-   From db like this, we can make a directed graph (another db!)
-  and write an exporter for this db.. export to an org buffer.
+  Check out =tsp-db.el=.
 
-+ From a file whose name contains a timestring, let the user be
-  able to quickly get to the exported buffer, in which all
-  associated files are presented and linked. If no data is
-  available, ask the user if initiate.
++ [X] From a file whose name contains a timestamp, let the user be able to quickly get to the exported buffer, in which all associated files are presented and linked.
 
-+ Add GIFs.
+  Check out =tsp:export-ts-prop-of-file-to-buffer=.
+
+  (TODO - If no data is available, ask the user if initiate.)
+
++ [ ] Add GIFs.
