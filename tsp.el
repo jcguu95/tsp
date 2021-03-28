@@ -3,6 +3,7 @@
 ;; External dependencies
 (require 'f)
 (require 'rx)
+(require 'dash)
 
 ;; Internal dependencies
 (let ((here (nth 1 (s-split " " (pwd)))))
@@ -32,6 +33,7 @@ timestring."
 
 (defun tsp:last-update-of-file (file)
   "A general util that returns the last update time of FILE."
+  ;; TODO add option for it to read from db.
   (format-time-string tsp:ts-format
                       (nth 5 (file-attributes file))))
 
@@ -76,36 +78,6 @@ timestring."
      :org-header org-header
      :org-links org-links ;; TODO resolve file type links, attachment type.. etc?
      )))
-
-(defun tsp:extract-ts-from-string (str)
-  "The core utility that extracts time stamps from any given
-string."
-  ;; ;; test cases
-  ;; (mapcar #'tsp:extract-ts-from-string
-  ;;         (list
-  ;;          "This is a long--message- asd -s--20210107 -12--sd ok"
-  ;;          "This is a long--message- asd -s--20210107-12--sd ok"
-  ;;          "This is a long--message- asd -s--20210131-085932--sd ok"
-  ;;          "This is a long--message- asd -s--20210170--sd ok"
-  ;;          "This is a long--message- asd -s--202101--sd ok"))
-  (let ((result (-uniq
-                 (-filter (lambda (x) (tsp:check-ts-format x))
-                          (-flatten
-                           (s-match-strings-all
-
-                            (rx word-start
-                                (** 4 15 (any digit "-"))
-                                word-end)
-
-                            str)
-
-                           )))))
-
-    ;; This is just a weird hack to prevent "legal" timestrings
-    ;; like "101010" .. and it would still have some edge cases.
-    (-filter (lambda (x) (>= (length x) 8)) result)
-
-    ))
 
 (defun tsp:all-ts ()
   "Return the list of all available timestamps from the names of
