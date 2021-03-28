@@ -20,7 +20,12 @@
 contain the given timestamp TS. Expect TS to be a full
 timestring."
   (if from-db
-      "TODO to implement"
+      (mapcar
+       (lambda (x)
+         (plist-get x :abs-path))
+       (plist-get (tsp:read-list-from-file
+                   (tsp:ts-prop-path ts))
+                  :file-props))
     (progn
       ;; Check format.
       (unless (tsp:check-full-ts-format ts)
