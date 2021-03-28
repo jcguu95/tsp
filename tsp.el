@@ -8,6 +8,7 @@
 (let ((here (nth 1 (s-split " " (pwd)))))
   (add-to-list 'load-path here))
 (require 'tsp-db)
+(require 'tsp-util)
 (require 'tsp-setup)
 (require 'tsp-format)
 (require 'tsp-org-parser)

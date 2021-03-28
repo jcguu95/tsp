@@ -1,5 +1,10 @@
 ;;; tsp-db.el -mode -*- coding: utf-8; lexical-binding: t; -*-
 
+;; Entry Points
+;;
+;; 1. #'tsp:update-ts-prop-from-file
+;; 2. #'tsp:update-ts-prop-from-dir
+
 (defvar tsp:db "~/.tsp"
   "The root of TSP's database.")
 (mkdir tsp:db t)
@@ -9,30 +14,6 @@
   "The subroot that stores TS related data.")
 (mkdir tsp:db-ts t)
 
-
-
-(defun tsp:store-list-in-file (lst file)
-  "A basic util that stores a lisp list into FILE."
-  (if (listp lst)
-      (f-write ;; this overwrites FILE!
-       (prin1-to-string lst)
-       'utf-8 file)
-    (error "LST must be a list.")))
-
-(defun tsp:read-list-from-file (file)
-  "A basic util that reads a list from FILE."
-  (when (f-exists-p file)
-    (let ((content (read (f-read file))))
-      (if (listp content)
-          content
-        (error "FILE exists but doesn't contain a proper list.")))))
-
-(defun tsp:ts-of-file (file)
-  "A basic util that returns a list of timestamps from FILE's
-name."
-  (let ((abso (file-truename file)))
-    (tsp:extract-ts-from-string abso)))
-
 (defun tsp:ts-prop-path (ts)
   "Return the path for the db of TS's ts-prop."
   (if (tsp:check-ts-format ts)
@@ -40,9 +21,9 @@ name."
     (error "TS is expected to be a proper timestamp.")))
 
 (defun tsp:update-ts-prop-from-a-file-and-a-ts (file ts &optional force)
-  "A basic util that update the ts-prop for TS by the information
-  provided by FILE. This is the bootstrapper for the entry point
-  #'tsp:update-ts-prop-from-file.
+  "A basic database-util that update the ts-prop for TS by the
+  information provided by FILE. This is the bootstrapper for the
+  entry point #'tsp:update-ts-prop-from-file.
 
 If FORCE is t, update database no regardless of the last update
 of FILE."
@@ -104,7 +85,7 @@ FILE."
     (tsp:store-list-in-file nil target)))
 
 (defun tsp:dir-content (dir &key from-db)
-  "A general util that returns all contents of DIR."
+  "A database-util that returns all contents of DIR."
   (let ((abso (file-truename dir)))
     (if from-db
         (plist-get (tsp:dir-info dir :from-db t) :content)
@@ -113,7 +94,7 @@ FILE."
                    (f-files abso)))))
 
 (defun tsp:dir-info (dir &key from-db)
-  "A util that reads the database and returns the dir-info for
+  "A database-util that reads the database and returns the dir-info for
 DIR." ;; TODO define "dir-info"
   (let ((abso (file-truename dir)))
     (if from-db
@@ -156,13 +137,11 @@ DIR." ;; TODO define "dir-info"
 ;;       do (tsp:update-dir-info dir))
 
 (defun tsp:symm-diff-dir-content (dir)
-  "A utility that returns the difference of dir-contents from db
-and from the DIR itself."
+  "Returns the difference of dir-contents from db and from the
+DIR itself."
   (let ((old (tsp:dir-content dir :from-db t))
         (new (tsp:dir-content dir :from-db nil)))
-    (-uniq
-     (-union (-difference old new)
-             (-difference new old)))))
+    (-uniq (tsp:-symmetric-difference old new))))
 
 (defun tsp:update-ts-prop-from-dir (dir)
   "Another entry point to update ts-prop from the information of
