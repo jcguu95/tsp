@@ -89,13 +89,101 @@ FILE."
   (let ((abso (file-truename file))
         (ts-list (tsp:ts-of-file file)))
     (loop for ts in ts-list
-          do (tsp:update-ts-prop-from-a-file-and-a-ts file ts force))))
-
-;; TESTING .. great, it works!
-(loop for dir in tsp:lib
-      do  (loop for file in (f-files dir)
-                do (tsp:update-ts-prop-from-file file)))
+          do (tsp:update-ts-prop-from-a-file-and-a-ts
+              file ts force))))
 
 
+
+
+
+
+
+(defvar tsp:dir-info-db
+  (f-join tsp:db "dir-info.lisp")
+  "The path to the database that stores the historical content of
+  all directories under TSP:LIB.")
+(let ((target tsp:dir-info-db))
+  (unless (f-exists-p target)
+    (tsp:store-list-in-file nil target)))
+
+;; (
+;;  (:path dir
+;;   :content (f-files dir))
+;;  (:path dir
+;;   :content (f-files dir))
+;; )
+
+(defun tsp:dir-content (dir &key from-db)
+  "A general util that returns all contents of DIR."
+  (let ((abso (file-truename dir)))
+    (if from-db
+        (plist-get (tsp:dir-info dir) :content)
+      (concatenate 'list
+                   (f-directories abso)
+                   (f-files abso)))))
+
+(defun tsp:dir-info (dir)
+  "A utility that reads the database and returns the dir-info
+for DIR." ;; TODO define "dir-info"
+  (let ((abso (file-truename dir))
+        (content (tsp:read-list-from-file tsp:dir-info-db)))
+    (seq-find (lambda (x)
+                (equal abso (plist-get x :path)))
+              content)))
+
+(defun tsp:update-dir-info (dir)
+  (let* ((abso (file-truename dir))
+         (content (tsp:read-list-from-file tsp:dir-info-db))
+         (dir-info (tsp:dir-info dir))
+         (last-update (plist-get dir-info :last-update)))
+    ;; If dir has changed since last update, delete the old data.
+    ;; FIXME something is wrong here
+    (when (not (equal last-update
+                      (tsp:last-update-of-file abso)))
+      (plist-put! dir-info
+                  :content (tsp:dir-content abso :from-db nil))
+      (setf content
+            (-filter
+             (lambda (x)
+               (not (string= abso
+                             (plist-get x :path))))
+             content)))
+    ;; And add the new data, regardlessly.
+    (add-to-list 'content
+                 `(:path ,abso
+                   :last-update ,(tsp:last-update-of-file abso)
+                   :content ,(tsp:dir-content abso :from-db nil)))
+    ;; Then write the data into file.
+    (tsp:store-list-in-file content tsp:dir-info-db)))
+
+;; Usage example.
+;; (loop for dir in tsp:lib
+;;       do (tsp:update-dir-info dir))
+
+(defun tsp:symm-diff-dir-content (dir)
+  "A utility that returns the difference of dir-contents from db
+and from the DIR itself."
+  (let ((old (tsp:dir-content dir :from-db t))
+        (new (tsp:dir-content dir :from-db nil)))
+    (-uniq
+     (-union (-difference old new)
+             (-difference new old)))))
+
+(defun tsp:update-ts-prop-from-dir (dir)
+  "Seek if there's any new or removed file since last check. If
+so, force update ts-prop for that file. Do it for each such file.
+
+Notice - #'tsp:update-ts-prop-from-file bootstraps this
+function!"
+  (if (member (file-truename dir)
+              (mapcar #'file-truename tsp:lib))
+
+      (let* ((symm-diff (tsp:symm-diff-dir-content dir)))
+        (unless (null symm-diff)
+          (tsp:update-dir-info dir))
+        (loop for file in symm-diff
+              do (tsp:update-ts-prop-from-file file)))
+
+    (error "DIR must be a member of TSP:LIB.")))
 
 (provide 'tsp-db)
