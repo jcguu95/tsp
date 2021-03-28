@@ -115,15 +115,7 @@ This exporter should render an org buffer:
 (defun tsp:export-ts-prop-of-file-to-buffer (file)
   "Export the ts-props of all timestamps of FILE to an org
   buffer."
-  (tsp:update-ts-prop-from-dir (f-dirname file))
+  (tsp:update-ts-prop-from-file file)
   (tsp:export-ts-prop-to-buffer (tsp:ts-of-file file)))
-
-;; TESTING - TODO something is wrong here
-;; (tsp:export-ts-prop-of-file-to-buffer
-;;  "~/data/storage/+org/wiki/fleeting/20000101-000001 20001212-000001.org")
-
-;; (tsp:update-ts-prop-from-dir
-;;  (f-dirname
-;;   "~/data/storage/+org/wiki/fleeting/20000101-000001 20001212-000001.org"))
 
 (provide 'tsp-export)
