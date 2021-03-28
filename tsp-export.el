@@ -105,11 +105,11 @@ This exporter should render an org buffer:
   (switch-to-buffer-other-window tsp:default-buffer))
 
 ;; TEST
-(tsp:export-ts-prop-to-buffer
- '(
-   "20111028-152106"
-   "20111028-152419"
-   "20210327-081236"
-   ))
+;; (tsp:export-ts-prop-to-buffer
+;;  '(
+;;    "20111028-152106"
+;;    "20111028-152419"
+;;    "20210327-081236"
+;;    ))
 
 (provide 'tsp-export)

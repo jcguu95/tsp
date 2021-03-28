@@ -12,6 +12,7 @@
 (require 'tsp-db)
 (require 'tsp-util)
 (require 'tsp-setup)
+(require 'tsp-export)
 (require 'tsp-format)
 (require 'tsp-org-parser)
 

@@ -1,9 +1,14 @@
 ;;; tsp-db.el -mode -*- coding: utf-8; lexical-binding: t; -*-
 
-;; Entry Points
+;; For updating, entry points are
 ;;
 ;; 1. #'tsp:update-ts-prop-from-file
 ;; 2. #'tsp:update-ts-prop-from-dir
+;;
+;; For reading, entry points are
+;;
+;; 1. #'tsp:all-ts
+;; 2. #'tsp:ts-prop
 
 (defvar tsp:db "~/.tsp"
   "The root of TSP's database.")
